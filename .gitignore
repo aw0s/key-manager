@@ -5,3 +5,4 @@ env/
 
 .env
 passdb.db
+passdb.db-journal

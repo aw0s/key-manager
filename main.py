@@ -3,6 +3,7 @@
 
 import os
 from pathlib import Path
+from sys import exit
 # import sqlite3
 
 import db_operations
@@ -15,20 +16,35 @@ def main() -> None:
 
     while True:
         password_input = input("Type your keypass password: ")
-        password_correctness = db_operations.password_correctness(password_input)
+        if password_input == 'exit':
+            exit(0)
+
+        password_correctness = db_operations.password_correctness(
+            db_name=DB_NAME,
+            password=password_input,
+        )
 
         if password_correctness:
-            while True:
-                mode_input = input("Choose your db operation mode: ")
+            operation = db_operations.DbOperations(db_name=DB_NAME)
+            operation.connection_open()
 
-                if mode_input == 'read':
-                    mode = 'read'
-                elif mode_input == 'write':
-                    mode = 'write'
+            while command := input(">>> ") != 'exit':
+                if command == 'add-service':
+                    service_name = input("Type your service name: ")
+                    service_mail = input("Type your mail or nick: ")
+                    service_password = input("Type your service password: ")
+
+                    operation.add_service(
+                        name=service_name,
+                        nick_mail=service_mail,
+                        password=service_password,
+                    )
+
+                    print("Service has been added successfully.")
+                elif command == 'get-password':
+                    pass
                 else:
-                    print("Incorrect mode.")
-
-            operation = db_operations.DbOperations(mode=mode)
+                    print("Incorrect command.")
         else:
             print("Incorrect password. Try again.")
 
