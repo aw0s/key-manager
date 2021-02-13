@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-from pathlib import Path
 from sys import exit
-# import sqlite3
+
+import pyperclip
 
 import db_operations
 from settings import *
@@ -25,26 +25,56 @@ def main() -> None:
         )
 
         if password_correctness:
-            operation = db_operations.DbOperations(db_name=DB_NAME)
-            operation.connection_open()
+            operations = db_operations.DbOperations(db_name=DB_NAME)
+            operations.connection_init()
 
-            while command := input(">>> ") != 'exit':
+            while (command := input(">>> ")) != 'exit':
                 if command == 'add-service':
-                    service_name = input("Type your service name: ")
-                    service_mail = input("Type your mail or nick: ")
-                    service_password = input("Type your service password: ")
+                    service_name = input("Type service name: ")
 
-                    operation.add_service(
-                        name=service_name,
-                        nick_mail=service_mail,
-                        password=service_password,
-                    )
+                    services_names_tuple = operations.get_services_tuple()
+                    if service_name not in services_names_tuple:
+                        service_mail = input("Type mail or nick: ")
+                        service_password = input("Type service password: ")
 
-                    print("Service has been added successfully.")
-                elif command == 'get-password':
-                    pass
+                        operations.add_service(
+                            name=service_name,
+                            nick_mail=service_mail,
+                            password=service_password,
+                        )
+
+                        print("Service has been added successfully.")
+                    else:
+                        print("Service with this name already exists.")
+                elif command == 'remove-service':
+                    service_name = input("Type service name: ")
+
+                    operations.remove_service(service_name)
+
+                    print("Service has been removed successfully.")
+                elif command == 'copy-nick-or-mail':
+                    service_name = input("Service name: ")
+
+                    pyperclip.copy(operations.get_nick_mail(service_name))
+                elif command == 'copy-password':
+                    service_name = input("Service name: ")
+
+                    pyperclip.copy(operations.get_service_password(service_name))
+                elif command == 'print-nick-or-mail':
+                    service_name = input("Service name: ")
+
+                    print(operations.get_nick_mail(service_name))
+                elif command == 'print-password':
+                    service_name = input("Service name: ")
+
+                    print(operations.get_service_password(service_name))
+                elif command == 'change-password':
+                    new_password = input("Type new password: ")
+
+                    operations.change_password(new_password=new_password)
                 else:
-                    print("Incorrect command.")
+                    print("Unrecognized command.")
+            break
         else:
             print("Incorrect password. Try again.")
 
